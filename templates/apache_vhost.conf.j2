@@ -1,8 +1,8 @@
 <VirtualHost {{ zabbix_apache_vhost_listen_ip }}:{{ zabbix_apache_vhost_port }}>
   ServerName {{ zabbix_apache_servername }}
-  {% for alias in zabbix_url_aliases %}
+{% for alias in zabbix_url_aliases %}
   ServerAlias {{ alias }}
-  {% endfor %}
+{% endfor %}
 
   ## Vhost docroot
   DocumentRoot "/usr/share/zabbix"
@@ -16,15 +16,15 @@
 {% set directory_paths = ['/usr/share/zabbix/conf', '/usr/share/zabbix/app', '/usr/share/zabbix/include', '/usr/share/zabbix/include/classes'] %}
 
   <Directory "/usr/share/zabbix">
-  {% if apache_version|string() == '2.4' %}
+{% if apache_version|string() == '2.4' %}
     Options FollowSymLinks
     AllowOverride None
     Require all granted
-  {% else %}
+{% else %}
     AllowOverride None
     Order Allow,Deny
     Allow from all
-  {% endif %}
+{% endif %}
   </Directory>
 
 {% for my_path in directory_paths %}
@@ -62,10 +62,11 @@
   # Set correct timezone.
   php_value date.timezone {{ zabbix_timezone }}
   {% endif %}
+{% endif %}  
 </VirtualHost>
 
 {# Set up TLS vhosts #}
-  {% if zabbix_apache_tls and zabbix_apache_vhost_tls_port %}
+{% if zabbix_apache_tls and zabbix_apache_vhost_tls_port %}
 
 SSLPassPhraseDialog {{ zabbix_apache_SSLPassPhraseDialog }}
 SSLSessionCache         {{ zabbix_apache_SSLSessionCache }}
@@ -87,41 +88,40 @@ SSLCryptoDevice {{ zabbix_apache_SSLCryptoDevice }}
   SSLCipherSuite {{ apache_ssl_cipher_suite }}
   SSLProtocol {{ apache_ssl_protocol }}
   SSLHonorCipherOrder On
-    {% if apache_vhosts_version == "2.4" %}
+  {% if apache_vhosts_version == "2.4" %}
   SSLCompression off
-    {% endif %}
+  {% endif %}
   SSLCertificateFile {{ zabbix_apache_tls_crt }}
   SSLCertificateKeyFile {{ zabbix_apache_tls_key }}
-    {% if zabbix_apache_tls_chain %}
+  {% if zabbix_apache_tls_chain %}
   SSLCertificateChainFile {{ zabbix_apache_tls_chain }}
-    {% endif %}
+  {% endif %}
 
 {% set directory_paths = ['/usr/share/zabbix/conf', '/usr/share/zabbix/app', '/usr/share/zabbix/include', '/usr/share/zabbix/include/classes'] %}
 
   <Directory "/usr/share/zabbix">
-    {% if apache_version|string() == '2.4' %}
+  {% if apache_version|string() == '2.4' %}
     Options FollowSymLinks
     AllowOverride None
     Require all granted
-    {% else %}
+  {% else %}
     AllowOverride None
     Order Allow,Deny
     Allow from all
-    {% endif %}
+  {% endif %}
   </Directory>
 
-     {% for my_path in directory_paths %}
+  {% for my_path in directory_paths %}
   <Directory "{{ my_path }}">
-      {% if apache_version|string() == '2.4' %}
+    {% if apache_version|string() == '2.4' %}
     Require all granted
-      {% else %}
+    {% else %}
     AllowOverride None
     Order Deny,Allow
     Deny from all
-      {% endif %}
+    {% endif %}
   </Directory>
-
-    {% endfor %}
+  {% endfor %}
   ## Logging
   ErrorLog "/var/log/{{ apache_log }}/{{ zabbix_apache_servername }}_tls_error.log"
   ServerSignature Off
@@ -131,9 +131,9 @@ SSLCryptoDevice {{ zabbix_apache_SSLCryptoDevice }}
   RewriteEngine On
   RewriteRule ^$ /index.php [L]
 
-    {% if zabbix_apache_include_custom_fragment | default(true) %}
+  {% if zabbix_apache_include_custom_fragment | default(true) %}
   ## Custom fragment
-      {% if zabbix_php_fpm %}
+     {% if zabbix_php_fpm %}
   ProxyPassMatch ^/(.*\.php(/.*)?)$ fcgi://127.0.0.1:9000/usr/share/zabbix/$1
   ProxyTimeout 1800
       {% else %}
@@ -145,7 +145,6 @@ SSLCryptoDevice {{ zabbix_apache_SSLCryptoDevice }}
   # Set correct timezone.
   php_value date.timezone {{ zabbix_timezone }}
       {% endif %}
-    {% endif %}
   {% endif %}  
 </VirtualHost>
 {% endif %}
